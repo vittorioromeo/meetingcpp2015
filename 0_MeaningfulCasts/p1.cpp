@@ -151,12 +151,8 @@ namespace impl
     constexpr bool will_overflow_impl(
         const TIn& x, std::false_type, std::false_type) noexcept
     {
-        if(x > std::numeric_limits<TOut>::max())
-        {
-            return true;
-        }
-
-        if(x < std::numeric_limits<TOut>::lowest())
+        if(x > std::numeric_limits<TOut>::max() ||
+            x < std::numeric_limits<TOut>::lowest())
         {
             return true;
         }
@@ -170,6 +166,38 @@ namespace impl
         (void)temp1;
 
         if(std::fetestexcept(FE_OVERFLOW | FE_UNDERFLOW | FE_INVALID))
+        {
+            return true;
+        }
+
+        // Sanity check.
+        if(static_cast<TIn>(static_cast<TOut>(x)) != x)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    template <typename TOut, typename TIn>
+    constexpr bool will_overflow_impl(
+        const TIn& x, std::true_type, std::false_type) noexcept
+    {
+        if((long double)x > (long double)std::numeric_limits<TOut>::max() ||
+            (long double)x < (long double)std::numeric_limits<TOut>::lowest())
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    template <typename TOut, typename TIn>
+    constexpr bool will_overflow_impl(
+        const TIn& x, std::false_type, std::true_type) noexcept
+    {
+        if((long double)x > (long double)std::numeric_limits<TOut>::max() ||
+            (long double)x < (long double)std::numeric_limits<TOut>::lowest())
         {
             return true;
         }
@@ -242,6 +270,12 @@ namespace impl
             return true;
         }
 
+        // Sanity check.
+        if(static_cast<TIn>(static_cast<TOut>(x)) != x)
+        {
+            return true;
+        }
+
         return false;
     }
 
@@ -251,12 +285,6 @@ namespace impl
         if(will_overflow_impl<TOut, TIn>(x,
                std::integral_constant<bool, std::is_integral<TOut>{}>{},
                std::integral_constant<bool, std::is_integral<TIn>{}>{}))
-        {
-            return true;
-        }
-
-        // Sanity check.
-        if(static_cast<TIn>(static_cast<TOut>(x)) != x)
         {
             return true;
         }
@@ -271,6 +299,7 @@ constexpr auto to_num(const TIn& x) noexcept
 {
     static_assert(impl::are_arithmethic<TOut, TIn>{},
         "`to_num` only works on numerical types.");
+
     FAKE_ASSERT(!impl::will_overflow<TOut, TIn>(x));
 
     return static_cast<TOut>(x);
@@ -308,7 +337,8 @@ template <typename TOut, typename TIn>
 auto are_same_representation()
 {
     return sizeof(std::decay_t<TOut>) == sizeof(std::decay_t<TIn>) &&
-           impl::same_signedness<std::decay_t<TOut>, std::decay_t<TIn>>{};
+           impl::same_signedness<std::decay_t<TOut>, std::decay_t<TIn>>{} &&
+           std::is_integral<TOut>{} == std::is_integral<TIn>{};
 }
 
 template <typename TOut, typename TIn>
@@ -331,7 +361,7 @@ void test_type(bool should_fire = false)
     assert_fired = false;
     if(are_same_representation<TOut, TIn>()) return;
 
-    (void)to_num<TOut>(std::numeric_limits<TIn>::min());
+    (void)to_num<TOut>(std::numeric_limits<TIn>::lowest());
     (void)to_num<TOut>(std::numeric_limits<TIn>::max());
     (void)to_num<TOut>(static_cast<TIn>(0));
     (void)to_num<TOut>(static_cast<TIn>(1));
@@ -550,10 +580,151 @@ void floating_tests()
     test_val<long double>(std::numeric_limits<long double>::lowest());
 }
 
+void mixed_tests()
+{
+    // Should not fire asserts:
+    test_type<float, int>();
+    test_type<float, long>();
+    test_type<float, long long>();
+    test_type<double, int>();
+    test_type<double, long>();
+    test_type<double, long long>();
+    test_type<long double, int>();
+    test_type<long double, long>();
+    test_type<long double, long long>();
+
+    // Should fire asserts:
+    test_type<char, float>(true);
+    test_type<short, float>(true);
+    test_type<int, float>(true);
+    test_type<long, float>(true);
+    test_type<char, double>(true);
+    test_type<short, double>(true);
+    test_type<int, double>(true);
+    test_type<long, double>(true);
+    test_type<char, long double>(true);
+    test_type<short, long double>(true);
+    test_type<int, long double>(true);
+    test_type<long, long double>(true);
+
+    // Should not fire asserts:
+    test_val<float>((char)0);
+    test_val<float>((char)-1);
+    test_val<float>((char)1);
+    test_val<float>((unsigned char)0);
+    test_val<float>((unsigned char)-1);
+    test_val<float>((unsigned char)1);
+    test_val<float>((int)0);
+    test_val<float>((int)-1);
+    test_val<float>((int)1);
+    test_val<float>((unsigned int)0);
+    test_val<float>((unsigned int)-1);
+    test_val<float>((unsigned int)1);
+
+    // Should not fire asserts:
+    test_val<double>((char)0);
+    test_val<double>((char)-1);
+    test_val<double>((char)1);
+    test_val<double>((unsigned char)0);
+    test_val<double>((unsigned char)-1);
+    test_val<double>((unsigned char)1);
+    test_val<double>((int)0);
+    test_val<double>((int)-1);
+    test_val<double>((int)1);
+    test_val<double>((unsigned int)0);
+    test_val<double>((unsigned int)-1);
+    test_val<double>((unsigned int)1);
+
+    // Should not fire asserts:
+    test_val<float>(std::numeric_limits<char>::lowest());
+    test_val<float>(std::numeric_limits<char>::max());
+    test_val<float>(std::numeric_limits<unsigned char>::lowest());
+    test_val<float>(std::numeric_limits<unsigned char>::max());
+    test_val<float>(std::numeric_limits<int>::lowest());
+    test_val<float>(std::numeric_limits<int>::max());
+    test_val<float>(std::numeric_limits<unsigned int>::lowest());
+    test_val<float>(std::numeric_limits<unsigned int>::max());
+    test_val<float>(std::numeric_limits<long>::lowest());
+    test_val<float>(std::numeric_limits<long>::max());
+    test_val<float>(std::numeric_limits<unsigned long>::lowest());
+    test_val<float>(std::numeric_limits<unsigned long>::max());
+    test_val<double>(std::numeric_limits<char>::lowest());
+
+    // Should not fire asserts:
+    test_val<double>(std::numeric_limits<char>::max());
+    test_val<double>(std::numeric_limits<unsigned char>::lowest());
+    test_val<double>(std::numeric_limits<unsigned char>::max());
+    test_val<double>(std::numeric_limits<int>::lowest());
+    test_val<double>(std::numeric_limits<int>::max());
+    test_val<double>(std::numeric_limits<unsigned int>::lowest());
+    test_val<double>(std::numeric_limits<unsigned int>::max());
+    test_val<double>(std::numeric_limits<long>::lowest());
+    test_val<double>(std::numeric_limits<long>::max());
+    test_val<double>(std::numeric_limits<unsigned long>::lowest());
+    test_val<double>(std::numeric_limits<unsigned long>::max());
+
+    // Should not fire asserts:
+    test_val<char>(0.f);
+    test_val<char>(1.f);
+    test_val<char>(-1.f);
+    test_val<char>(0.0);
+    test_val<char>(1.0);
+    test_val<char>(-1.0);
+    test_val<char>(0.l);
+    test_val<char>(1.l);
+    test_val<char>(-1.l);
+
+    // Should not fire asserts:
+    test_val<int>(0.f);
+    test_val<int>(1.f);
+    test_val<int>(-1.f);
+    test_val<int>(0.0);
+    test_val<int>(1.0);
+    test_val<int>(-1.0);
+    test_val<int>(0.l);
+    test_val<int>(1.l);
+    test_val<int>(-1.l);
+
+    // Should not fire asserts:
+    test_val<long>(0.f);
+    test_val<long>(1.f);
+    test_val<long>(-1.f);
+    test_val<long>(0.0);
+    test_val<long>(1.0);
+    test_val<long>(-1.0);
+    test_val<long>(0.l);
+    test_val<long>(1.l);
+    test_val<long>(-1.l);
+
+    // Should not fire asserts:
+    test_val<unsigned char>(0.f);
+    test_val<unsigned char>(1.f);
+    test_val<unsigned char>(0.0);
+    test_val<unsigned char>(1.0);
+    test_val<unsigned char>(0.l);
+    test_val<unsigned char>(1.l);
+
+    // Should not fire asserts:
+    test_val<unsigned int>(0.f);
+    test_val<unsigned int>(1.f);
+    test_val<unsigned int>(0.0);
+    test_val<unsigned int>(1.0);
+    test_val<unsigned int>(0.l);
+    test_val<unsigned int>(1.l);
+
+    // Should not fire asserts:
+    test_val<unsigned long>(0.f);
+    test_val<unsigned long>(1.f);
+    test_val<unsigned long>(0.0);
+    test_val<unsigned long>(1.0);
+    test_val<unsigned long>(0.l);
+    test_val<unsigned long>(1.l);
+}
+
 int main()
 {
     integral_tests();
     floating_tests();
-    // TODO: mixed_tests();
+    mixed_tests();
     return 0;
 }
