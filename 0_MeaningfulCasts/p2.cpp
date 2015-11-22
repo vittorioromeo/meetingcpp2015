@@ -77,6 +77,24 @@ enum class uchar_enum : unsigned char
 
 int main()
 {
+    // TODO:
+
+    // `enum to default underlying type:
+    {
+    }
+
+    // `enum` to numerical type:
+    {
+    }
+
+    // Numerical type to `enum`:
+    {
+    }
+
+    // `enum` to `enum`:
+    {
+    }
+
     (void)static_cast<int>(int_enum::a);
     (void)from_enum(int_enum::a);
 
@@ -90,11 +108,16 @@ int main()
     (void)to_enum<int_enum>(uchar_enum::a);
 
     (void)static_cast<uchar_enum>(int_enum::a);
+    
+    // Run-time assertion:
     // (void)to_enum<uchar_enum>(int_enum::a);
 
     (void)static_cast<int>(uchar_enum::a);
     (void)from_enum<int>(uchar_enum::a);
 
+
     (void)static_cast<unsigned char>(int_enum::a);
+
+    // Run-time assertion:
     // (void)from_enum<unsigned char>(int_enum::a);    
 }
