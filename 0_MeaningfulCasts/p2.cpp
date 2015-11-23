@@ -8,10 +8,6 @@
 #include <cmath>
 #include "will_overflow.hpp"
 
-// TODO:
-// * enum vs enum class
-// * underlying type
-
 template <typename TOut, typename TIn>
 constexpr auto to_num(const TIn& x) noexcept
 {
@@ -21,24 +17,46 @@ constexpr auto to_num(const TIn& x) noexcept
     return static_cast<TOut>(x);
 }
 
-/// @brief Converts an enum to a type convertible to its underlying type.
+// When dealing with `enum` types, we may want to perform the following
+// conversions:
+// * `enum` to number
+// * number to `enum`
+// * `enum` to `enum`
+
+// Every `enum` type has an underlying type that can be retrieved using
+// `std::underlying_type_t`.
+
+// The most general `enum` to number cast converts the `enum` value to a type
+// convertible to its underlying type.
 template <typename TOut, typename TIn>
 constexpr auto from_enum(const TIn& x) noexcept
 {
+    // Make sure the input is an `enum`.
     static_assert(std::is_enum<TIn>{}, "");
+
+    // Make sure that the input's underlying type is convertible to the desired
+    // output type.
     static_assert(std::is_convertible<std::underlying_type_t<TIn>, TOut>{}, "");
 
+    // Use `to_num` to catch eventual overflows/underflows when casting the
+    // inner value.
     return to_num<TOut>(static_cast<std::underlying_type_t<TIn>>(x));
 }
 
-/// @brief Converts an enum to its underlying type.
+// One common operation is converting an `enum` to its underlying type - this is
+// a special case of the previous function.
 template <typename TIn>
 constexpr auto from_enum(const TIn& x) noexcept
 {
     return from_enum<std::underlying_type_t<TIn>, TIn>(x);
 }
 
-/// @brief Converts a number to an enum.
+// Converting a number to an `enum` is another common operation - the underlying
+// type of the desired enum type must be convertible to the input type.
+
+// Since we're gonna use the `to_enum` functions to converts `enum` types to
+// other `enum` types as well, we need to constrain the "number -> `enum`" case
+// using SFINAE.
 template <typename TOut, typename TIn>
 constexpr auto to_enum(const TIn& x) noexcept -> std::enable_if_t<
     std::is_enum<TOut>{} && !std::is_enum<TIn>{} &&
@@ -48,12 +66,13 @@ constexpr auto to_enum(const TIn& x) noexcept -> std::enable_if_t<
     return static_cast<TOut>(to_num<std::underlying_type_t<TOut>>(x));
 }
 
-/// @brief Converts an enum to another enum.
-/// @details The underlying types must be convertible between each other.
+// The last function implements `enum` to `enum` conversion.
 template <typename TOut, typename TIn>
 constexpr auto to_enum(const TIn& x) noexcept
     -> std::enable_if_t<std::is_enum<TOut>{} && std::is_enum<TIn>{}, TOut>
 {
+    // We need to make sure that the underlying types are convertible between
+    // each other.
     static_assert(std::is_convertible<std::underlying_type_t<TOut>,
                       std::underlying_type_t<TIn>>{},
         "");
@@ -81,43 +100,49 @@ int main()
 
     // `enum to default underlying type:
     {
+        (void)static_cast<std::underlying_type_t<int_enum>>(int_enum::a);
+        (void)from_enum(int_enum::a);
+
+        (void)static_cast<std::underlying_type_t<uchar_enum>>(uchar_enum::a);
+        (void)from_enum(uchar_enum::a);
     }
 
     // `enum` to numerical type:
     {
+        // Uncaught mistake:
+        (void)static_cast<unsigned int>(int_enum::a);
+
+        // Run-time assertion:
+        /*
+            (void)from_enum<unsigned int>(int_enum::a);
+        */
     }
 
     // Numerical type to `enum`:
     {
+        (void)static_cast<int_enum>(-1);
+        (void)to_enum<int_enum>(-1);
+
+        // Uncaught mistake:
+        (void)static_cast<uchar_enum>(-1);
+
+        // Run-time assertion:
+        /*
+            (void) to_enum<uchar_enum>(-1);
+        */
     }
 
     // `enum` to `enum`:
     {
+        (void)static_cast<int_enum>(uchar_enum::a);
+        (void)to_enum<int_enum>(uchar_enum::a);
+
+        // Uncaught mistake:
+        (void)static_cast<uchar_enum>(int_enum::a);
+
+        // Run-time assertion:
+        /*
+            (void)to_enum<uchar_enum>(int_enum::a);
+        */
     }
-
-    (void)static_cast<int>(int_enum::a);
-    (void)from_enum(int_enum::a);
-
-    (void)static_cast<float>(int_enum::a);
-    (void)from_enum<float>(int_enum::a);
-
-    (void)static_cast<char>(int_enum::a);
-    (void)from_enum<char>(int_enum::a);
-
-    (void)static_cast<int_enum>(uchar_enum::a);
-    (void)to_enum<int_enum>(uchar_enum::a);
-
-    (void)static_cast<uchar_enum>(int_enum::a);
-    
-    // Run-time assertion:
-    // (void)to_enum<uchar_enum>(int_enum::a);
-
-    (void)static_cast<int>(uchar_enum::a);
-    (void)from_enum<int>(uchar_enum::a);
-
-
-    (void)static_cast<unsigned char>(int_enum::a);
-
-    // Run-time assertion:
-    // (void)from_enum<unsigned char>(int_enum::a);    
 }

@@ -58,19 +58,27 @@
 
 // Let's begin with "number type" to "number type" conversions.
 
-// TODO: will_overflow explanation
+// TODO: mention Boost
+
+// To truly benefit from a custom numerical cast, what we need is a function
+// that can detect overflow/underflow and invalid operations before they happen.
 
 template <typename TOut, typename TIn>
 constexpr auto to_num(const TIn& x) noexcept
 {
+    // The first thing we have to do is check that the source and target types
+    // satisfy the `std::is_arithmetic` type trait.
     static_assert(std::is_arithmetic<TOut>{} && std::is_arithmetic<TIn>{}, "");
+
+    // Afterwards, we assert that the conversion will not underflow/overflow
+    // thanks to our magic `will_overflow` function.
     assert((!impl::will_overflow<TOut, TIn>(x)));
 
+    // We can finally use `static_cast` to convert the number.
     return static_cast<TOut>(x);
 }
 
 // And that's pretty much it!
-// An assertion that checks for possible overflows could also be added.
 
 int main()
 {
@@ -125,9 +133,11 @@ int main()
         (void)to_num<int>(-1);
 
         // Run-time assertion:
-        // (void)to_num<unsigned char>(-1);
-        // (void)to_num<unsigned short>(-1);
-        // (void)to_num<unsigned int>(-1);
+        /* 
+            (void)to_num<unsigned char>(-1);
+            (void)to_num<unsigned short>(-1);
+            (void)to_num<unsigned int>(-1);
+        */
 
         // Ok:
         (void)to_num<char>((short)std::numeric_limits<char>::max());
@@ -138,21 +148,23 @@ int main()
         (void)to_num<int>((long)std::numeric_limits<int>::min());
 
         // Run-time assertion:
-        // (void)to_num<char>((short)std::numeric_limits<char>::max() + 1);
-        // (void)to_num<char>((short)std::numeric_limits<char>::min() - 1);
-        // (void)to_num<short>((int)std::numeric_limits<short>::max() + 1);
-        // (void)to_num<short>((int)std::numeric_limits<short>::min() - 1);
-        // (void)to_num<int>((long)std::numeric_limits<int>::max() + 1);
-        // (void)to_num<int>((long)std::numeric_limits<int>::min() - 1);
+        /* 
+            (void)to_num<char>((short)std::numeric_limits<char>::max() + 1);
+            (void)to_num<char>((short)std::numeric_limits<char>::min() - 1);
+            (void)to_num<short>((int)std::numeric_limits<short>::max() + 1);
+            (void)to_num<short>((int)std::numeric_limits<short>::min() - 1);
+            (void)to_num<int>((long)std::numeric_limits<int>::max() + 1);
+            (void)to_num<int>((long)std::numeric_limits<int>::min() - 1);
+        */
 
         // Ok:
         (void)to_num<float>(std::numeric_limits<float>::max());
 
         // Run-time assertion:
-        // (void)to_num<float>(std::numeric_limits<double>::max());
-
-        // Run-time assertion:
-        // (void)to_num<float>(NAN);
+        /* 
+            (void)to_num<float>(std::numeric_limits<double>::max());
+            (void)to_num<float>(NAN);
+        */
     }
 
     return 0;
