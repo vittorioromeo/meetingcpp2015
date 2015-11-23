@@ -7,6 +7,8 @@
 #include <iostream>
 #include "qualifier_utils.hpp"
 
+// TODO: opengl example
+
 template <typename T>
 constexpr auto to_void_ptr(T* x) noexcept
 {
