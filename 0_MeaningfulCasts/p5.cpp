@@ -7,7 +7,8 @@
 #include <iostream>
 #include "qualifier_utils.hpp"
 
-// TODO: opengl example
+// Some legacy APIs may require extensive casting to `void*`, even using
+// numbers, which are non-pointer objects. One example of such an API is OpenGL.
 
 template <typename T>
 constexpr auto to_void_ptr(T* x) noexcept
@@ -16,7 +17,7 @@ constexpr auto to_void_ptr(T* x) noexcept
 }
 
 template <typename T>
-constexpr auto num_to_void_ptr(T& x) noexcept
+constexpr auto num_to_void_ptr(T&& x) noexcept
     -> std::enable_if_t<!std::is_pointer<T>{}, copy_cv_qualifiers<void, T>*>
 {
     static_assert(std::is_arithmetic<T>{}, "");
@@ -25,4 +26,10 @@ constexpr auto num_to_void_ptr(T& x) noexcept
 
 int main()
 {
+    (void)(void*)10;
+
+    // Will not compile:
+    // (void)to_void_ptr(10);
+
+    (void)num_to_void_ptr(10);
 }

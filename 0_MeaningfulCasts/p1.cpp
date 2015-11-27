@@ -8,43 +8,14 @@
 #include <cmath>
 #include "will_overflow.hpp"
 
-// Casting is essential in pretty much all projects.
+// Casting is an essential operation for all projects, but can be a source of
+// errors when used improperly.
 
-// The least strict and "most powerful" cast we can use in C++ is the "C-style
-// cast", called "cast operator" in the standard.
+// C++ improved upon C's "cast operator" by defining new, more strict and safer
+// casts. (Do not use C-style casts!)
 
-// In short, it tries to convert a value to a type specified by the user
-// following these rules:
-
-// * Try implicit conversions "as if by assignment".
-//
-// * Covert any integer to a pointer type.
-//   (implementation-defined behavior for non-null values)
-//
-// * Convert any pointer type to an integer.
-//   (may result in undefined behavior)
-//
-// * Covert a pointer type to another pointer type.
-//   (may result in undefined behavior)
-//   (also applies to function pointers)
-
-// The rules get even more messy and dangerous when dealing with `const`,
-// `volatile` and other qualifiers.
-
-// Do not use C-style casts!
-
-// Thankfully, C++ introduced some stricter and "more meaningful" casts:
-
-// * `static_cast<T>`
-// * `const_cast<T>`
-// * `reinterpret_cast<T>`
-// * `dynamic_cast<T>`
-
-// By having stricter rules, these casts are safer to use, and the compiler can
-// catch many mistakes and inxid casts.
-
-// We can do better, though!
-// We can define our own even stricter, more meaningful and safer casts.
+// We can follow the same philosophy when defining our new "meaningful" casts:
+// they will be more strict and safer than C++'s default casts.
 
 // In this short talk, we'll cover the implementation of the following type
 // conversions:
@@ -62,6 +33,13 @@
 
 // To truly benefit from a custom numerical cast, what we need is a function
 // that can detect overflow/underflow and invalid operations before they happen.
+
+// Its implementation is out of the scope of this talk. In short, it tries to
+// detect overflows/underflows before they happen and it uses the <cfenv> header
+// to check validity of floating point operations.
+
+// Having implemented a `will_overflow` function, we can now define our first
+// "cast": `to_num.
 
 template <typename TOut, typename TIn>
 constexpr auto to_num(const TIn& x) noexcept
@@ -133,7 +111,7 @@ int main()
         (void)to_num<int>(-1);
 
         // Run-time assertion:
-        /* 
+        /*
             (void)to_num<unsigned char>(-1);
             (void)to_num<unsigned short>(-1);
             (void)to_num<unsigned int>(-1);
@@ -148,7 +126,7 @@ int main()
         (void)to_num<int>((long)std::numeric_limits<int>::min());
 
         // Run-time assertion:
-        /* 
+        /*
             (void)to_num<char>((short)std::numeric_limits<char>::max() + 1);
             (void)to_num<char>((short)std::numeric_limits<char>::min() - 1);
             (void)to_num<short>((int)std::numeric_limits<short>::max() + 1);
@@ -161,7 +139,7 @@ int main()
         (void)to_num<float>(std::numeric_limits<float>::max());
 
         // Run-time assertion:
-        /* 
+        /*
             (void)to_num<float>(std::numeric_limits<double>::max());
             (void)to_num<float>(NAN);
         */

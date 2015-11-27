@@ -73,8 +73,10 @@ constexpr auto to_enum(const TIn& x) noexcept
 {
     // We need to make sure that the underlying types are convertible between
     // each other.
-    static_assert(std::is_convertible<std::underlying_type_t<TOut>,
-                      std::underlying_type_t<TIn>>{},
+    static_assert(std::is_convertible<              // .
+                      std::underlying_type_t<TOut>, // .
+                      std::underlying_type_t<TIn>   // .
+                      >{},
         "");
 
     return to_enum<TOut>(from_enum(x));
@@ -109,6 +111,8 @@ int main()
 
     // `enum` to numerical type:
     {
+        // `int_enum::a` is `-1`
+
         // Uncaught mistake:
         (void)static_cast<unsigned int>(int_enum::a);
 
@@ -134,6 +138,8 @@ int main()
 
     // `enum` to `enum`:
     {
+        // `int_enum::a` is `-1`
+
         (void)static_cast<int_enum>(uchar_enum::a);
         (void)to_enum<int_enum>(uchar_enum::a);
 
@@ -146,3 +152,6 @@ int main()
         */
     }
 }
+
+// In the next code segment, we'll take a look at `std::aligned_storage`-related
+// casts.
