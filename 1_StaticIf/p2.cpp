@@ -23,6 +23,13 @@ auto static_if(TPredicate) noexcept;
 // Our implementation will consist of a template struct that will be specialized
 // with the predicate's result.
 
+// When calling `static_if`, we will return a `static_if_impl` instance that
+// will allow the user to build the branching logic.
+
+// As soon as we find a matching branch, we will return a `static_if_result`
+// instance, that will be propagated through the branching hierarchy and
+// eventually call the correct function.
+
 namespace impl
 {
     template <typename TFunctionToCall>

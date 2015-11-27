@@ -87,7 +87,7 @@ unique_ptr<T> make_unique(Args&&... args)
 // And the comments on its reddit thread:
 // reddit.com/r/cpp/comments/3d46ns/simulate_static_if_with_c11c14/
 
-// TODO:
+// Here's an example usage of the `static_if` function we're going to implement.
 
 struct banana
 {
@@ -140,9 +140,16 @@ auto consume(T&& x)
 {
     using namespace vrm::core;
 
+    // Notice how we're wrapping our boolean predicates inside integral
+    // constants, so that they all have their own unique type.
+
+    // TODO: mention type-value encoding
+
     static_if(bool_<is_solid<T>>{})
         .then([](auto&& y)
             {
+                // TODO: mention scope 
+
                 y.eat();
                 std::cout << "ate solid food\n";
             })
