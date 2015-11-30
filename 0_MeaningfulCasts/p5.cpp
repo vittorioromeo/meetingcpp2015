@@ -33,3 +33,14 @@ int main()
 
     (void)num_to_void_ptr(10);
 }
+
+// Thanks for your attention!
+
+// My advice:
+// 
+// * Be as explicit as possible in your code. Wrapping existing functions in
+// stricter ones, with more descriptive names, is always a good thing.
+//
+// * Always try to use the strictest cast available.
+//
+// * Use Boost if you can! 

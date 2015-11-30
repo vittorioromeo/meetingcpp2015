@@ -29,8 +29,6 @@
 
 // Let's begin with "number type" to "number type" conversions.
 
-// TODO: mention Boost
-
 // To truly benefit from a custom numerical cast, what we need is a function
 // that can detect overflow/underflow and invalid operations before they happen.
 
@@ -39,7 +37,7 @@
 // to check validity of floating point operations.
 
 // Having implemented a `will_overflow` function, we can now define our first
-// "cast": `to_num.
+// "cast": `to_num`.
 
 template <typename TOut, typename TIn>
 constexpr auto to_num(const TIn& x) noexcept
@@ -147,5 +145,9 @@ int main()
 
     return 0;
 }
+
+// Note that Boost provides a production-ready implementation,
+// `boost::numeric_cast`, which allows users to handle conversion errors in the
+// way they prefer thanks to a policy-based design.
 
 // Let's move onto `enum`-related casts.

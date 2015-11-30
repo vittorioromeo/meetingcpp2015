@@ -140,15 +140,30 @@ auto consume(T&& x)
 {
     using namespace vrm::core;
 
-    // Notice how we're wrapping our boolean predicates inside integral
+    // Note how we're wrapping our boolean predicates inside integral
     // constants, so that they all have their own unique type.
 
-    // TODO: mention type-value encoding
+    // Wrapping values inside types is what allows amazing libraries such as
+    // `boost::hana` (by Louis Dionne) or `fit` and `tick` (by Paul Fultz II) to
+    // provide extremely powerful, clean, and intuitive metaprogramming
+    // facilities.
+
+    // More information about "type-value encoding" or "dependent typing":
+    // * http://pfultz2.com/blog/2015/01/24/dependent-typing/
+    // * http://boostorg.github.io/hana/index.html#tutorial-type
 
     static_if(bool_<is_solid<T>>{})
         .then([](auto&& y)
             {
-                // TODO: mention scope 
+                // Scope rules are respected as usual.
+
+                // Think of every branch of the "static if" as a template
+                // function that will only be instantiated if the predicate
+                // matches.
+
+                // In this example, even if `y.eat()` does not exist, we won't
+                // get a compilation error, because the branch won't be
+                // instantiated.
 
                 y.eat();
                 std::cout << "ate solid food\n";
