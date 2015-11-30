@@ -11,8 +11,8 @@
 // `static_if` is particularly useful when combined with other similar
 // constructs, such as `for_args`.
 
+// TODO: better example
 // TODO: `for_args` description.
-// TODO: mention boost::hana, type-value encoding.
 
 struct base_int_token
 {
