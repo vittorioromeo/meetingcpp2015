@@ -18,7 +18,7 @@
 // N4461: Static if resurrected
 // open-std.org/jtc1/sc22/wg21/docs/papers/2015/n4461.html
 
-// Examples from N4461
+// (Examples from N4461.)
 // Motivating example 1:
 
 /*
@@ -39,7 +39,7 @@ void f(T&& t, Rest&&... r)
 template <class T, class... Rest>
 void f(T&& t, Rest&&... r)
 {
-    //  handle one T
+    f(t);
 
     static_if (sizeof...(r))
     {

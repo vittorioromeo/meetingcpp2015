@@ -8,14 +8,14 @@
 #include "qualifier_utils.hpp"
 
 // I find myself using `std::aligned_storage` quite often.
-// It is a convenient struct big enough to contain a specific type with correct
-// alignment.
+// It is a convenient type alias for a `struct` big enough to contain a specific
+// type with correct alignment.
 
 // The correct way to get the "contents" of the aligned storage is by using
 // `reinterpret_cast`, which is unsafe and can lead to errors.
 
-// An alternative uses two chained `static_cast` calls, but its equivalent to
-// the `reinterpret_cast` one.
+// Alternatively, two chained `static_cast` calls can be used, but its
+// equivalent to the `reinterpret_cast` one.
 // More information: stackoverflow.com/questions/19300142/
 
 // When casting an aligned storage to a specific type `T`, we can actually check
@@ -33,7 +33,7 @@ using valid_storage = std::integral_constant<bool,
 template <typename T, typename TStorage>
 constexpr decltype(auto) from_storage(TStorage* storage) noexcept
 {
-    static_assert(valid_storage<T, TStorage>{}, "");
+    static_assert(valid_storage<T, TStorage>{}, "`TStorage` cannot hold `T`.");
 
     // Extra sanity check.
     assert(storage != nullptr);
@@ -64,6 +64,7 @@ int main()
 
         reinterpret_cast<int&>(s) = 10;
         from_storage<int>(s) = 10;
+        assert(*from_storage<int>(&s) == 10);
 
         // Uncaught mistake:
         reinterpret_cast<double&>(s) = 10.f;
@@ -81,7 +82,9 @@ int main()
 
         assert(from_storage<int>(s) == 10);
     }
+
+    return 0;
 }
 
 // In the next code segment, we'll implement casts that allow us to move up and
-// down a polymorphic hierarchy.
+// down a class hierarchy.

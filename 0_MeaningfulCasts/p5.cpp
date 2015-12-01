@@ -13,34 +13,40 @@
 template <typename T>
 constexpr auto to_void_ptr(T* x) noexcept
 {
-    return static_cast<copy_cv_qualifiers<void, T>*>(x);
+    return static_cast<copy_cv_qualifiers<void*, T>>(x);
 }
 
 template <typename T>
 constexpr auto num_to_void_ptr(T&& x) noexcept
     -> std::enable_if_t<!std::is_pointer<T>{}, copy_cv_qualifiers<void, T>*>
 {
-    static_assert(std::is_arithmetic<T>{}, "");
-    return reinterpret_cast<copy_cv_qualifiers<void, T>*>(x);
+    static_assert(std::is_arithmetic<std::decay_t<T>>{}, // .
+        "`T` must be arithmethic.");
+
+    return reinterpret_cast<copy_cv_qualifiers<void*, T>>(x);
 }
 
 int main()
 {
-    (void)(void*)10;
+    reinterpret_cast<void*>(10);
 
     // Will not compile:
-    // (void)to_void_ptr(10);
+    // to_void_ptr(10);
 
-    (void)num_to_void_ptr(10);
+    // Will compile:
+    num_to_void_ptr(10);
+
+    return 0;
 }
 
+// TODO:
 // Thanks for your attention!
 
 // My advice:
-// 
+//
 // * Be as explicit as possible in your code. Wrapping existing functions in
 // stricter ones, with more descriptive names, is always a good thing.
 //
 // * Always try to use the strictest cast available.
 //
-// * Use Boost if you can! 
+// * Use Boost if you can!
