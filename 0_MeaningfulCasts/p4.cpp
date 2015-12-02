@@ -8,36 +8,49 @@
 #include <memory>
 #include "qualifier_utils.hpp"
 
-// We'll define four functions to move in a class hierarchy:
-// * `to_base`: from derived to base type, non-polymorphic.
-// * `to_derived`: from base to derived type, non-polymorphic.
-// * `to_polymorphic_base`: from derived to base type, polymorphic.
-// * `to_polymorphic_derived`: from base to derived type, polymorphic.
+// We'll define two functions to move in a class hierarchy: `to_base` and
+// `to_derived`. They will wrap `static_cast`.
 
-// The non-polymorphic functions will simply wrap `static_cast` and check for
-// pointer validity.
+// The functions are intended to be used both for polymorphic and
+// non-polymorphic hierarchies.
 
-// The polymorphic functions will assert that:
+// We can detect whether or not an hierarchy is polymorphic at compile-time.
+// If it is, we can use the following assertion:
 // `dynamic_cast<target_type>(ptr) == ptr`.
 
-// This will guarantee that the types are part of the same polymorphic
-// hierarchy, and will work properly even with multiple inheritance.
+// This will guarantee that `ptr` is actually holding the type we're trying to
+// access, and will work properly even with multiple inheritance.
 
 // Our implementation strategy will be as follows:
 //
-// 1) We'll define a general `hierarchy_cast` function that will check for
-// pointer validity and that the types belong to the same hierarchy.
+// 1) We'll start by defining a tag-dispatch-overloaded function that will
+// assert the aforementioned `dynamic_cast` only for polymorphic types.
 //
-// 2) We'll define the `to_base_impl` and `to_derived_impl` functions that will
-// compute the correct return type and call `hierarchy_cast`.
+// 2) A general `hierarchy_cast` function will check pointer validity and that
+// the types belong to the same hierarchy. It will call the previously defined
+// tag-dispatched function, using `std::is_polymorphic`.
 //
-// 3) We'll define the interface functions, that will check whether or not the
-// type is polymorphic and perform the `dynamic_cast` check if appropriate.
+// 3) We'll define the interface functions, that will call `hierarchy_cast`
+// after computing the correctly qualified return type.
 
 namespace impl
 {
+    // This overload will be called when `std::is_polymorphic<T>` is `true`.
+    template <typename TOut, typename T>
+    constexpr void assert_correct_polymorphic(T* ptr, std::true_type) noexcept
+    {
+        assert(dynamic_cast<TOut>(ptr) == ptr);
+    }
+
+    // This overload will be called when `std::is_polymorphic<T>` is `false`.
+    template <typename, typename T>
+    constexpr void assert_correct_polymorphic(T*, std::false_type) noexcept
+    {
+    }
+
+    // `TOut` will be computed by the callee.
     template <typename TDerived, typename TBase, typename TOut, typename T>
-    constexpr decltype(auto) hierarchy_cast(T&& ptr) noexcept
+    constexpr decltype(auto) hierarchy_cast(T* ptr) noexcept
     {
         static_assert(std::is_base_of<TBase, TDerived>{}, // .
             "`TBase` is not a base class of `TDerived`.");
@@ -45,85 +58,23 @@ namespace impl
         // Sanity check.
         assert(ptr != nullptr);
 
+        assert_correct_polymorphic<TOut>(ptr, std::is_polymorphic<TBase>{});
         return static_cast<TOut>(ptr);
     }
-
-    template <typename TDerived, typename TBase>
-    constexpr decltype(auto) to_derived_impl(TBase* base) noexcept
-    {
-        return hierarchy_cast<TDerived, TBase, // .
-            copy_cv_qualifiers<TDerived, TBase>*>(base);
-    }
-
-    template <typename TBase, typename TDerived>
-    constexpr decltype(auto) to_base_impl(TDerived* derived) noexcept
-    {
-        return hierarchy_cast<TDerived, TBase, // .
-            copy_cv_qualifiers<TBase, TDerived>*>(derived);
-    }
 }
-
-// We'll provide two overloads per function: the first one will take and return
-// a pointer, the second one will take and return a reference.
 
 template <typename TDerived, typename TBase>
 constexpr decltype(auto) to_derived(TBase* base) noexcept
 {
-    static_assert(!std::is_polymorphic<TBase>{}, "");
-    return impl::to_derived_impl<TDerived, TBase>(base);
+    using result_type = copy_cv_qualifiers<TDerived, TBase>*;
+    return impl::hierarchy_cast<TDerived, TBase, result_type>(base);
 }
 
 template <typename TBase, typename TDerived>
 constexpr decltype(auto) to_base(TDerived* derived) noexcept
 {
-    static_assert(!std::is_polymorphic<TBase>{}, "");
-    return impl::to_base_impl<TBase, TDerived>(derived);
-}
-
-template <typename TDerived, typename TBase>
-constexpr decltype(auto) to_derived(TBase&& base) noexcept
-{
-    return *to_derived<TDerived>(&base);
-}
-
-template <typename TBase, typename TDerived>
-constexpr decltype(auto) to_base(TDerived&& derived) noexcept
-{
-    return *to_base<TBase>(&derived);
-}
-
-template <typename TDerived, typename TBase>
-constexpr decltype(auto) to_polymorphic_derived(TBase* base) noexcept
-{
-    static_assert(std::is_polymorphic<TBase>{}, "");
-
-    decltype(auto) res(impl::to_derived_impl<TDerived, TBase>(base));
-    assert(dynamic_cast<decltype(res)>(base) == base);
-
-    return res;
-}
-
-template <typename TBase, typename TDerived>
-constexpr decltype(auto) to_polymorphic_base(TDerived* derived) noexcept
-{
-    static_assert(std::is_polymorphic<TBase>{}, "");
-
-    decltype(auto) res(impl::to_base_impl<TBase, TDerived>(derived));
-    assert(dynamic_cast<decltype(res)>(derived) == derived);
-
-    return res;
-}
-
-template <typename TDerived, typename TBase>
-constexpr decltype(auto) to_polymorphic_derived(TBase&& base) noexcept
-{
-    return *to_polymorphic_derived<TDerived>(&base);
-}
-
-template <typename TBase, typename TDerived>
-constexpr decltype(auto) to_polymorphic_base(TDerived&& derived) noexcept
-{
-    return *to_polymorphic_base<TBase>(&derived);
+    using result_type = copy_cv_qualifiers<TBase, TDerived>*;
+    return impl::hierarchy_cast<TDerived, TBase, result_type>(derived);
 }
 
 
@@ -135,7 +86,7 @@ struct crtp_base : T
 {
     auto& as_derived()
     {
-        return to_derived<T>(*this);
+        return *to_derived<T>(this);
     }
 
     void print()
@@ -189,13 +140,13 @@ void shape_example()
     shape* b0{nullptr};
 
     // Run-time assertion:
-    // to_polymorphic_derived<circle>(b0)->draw();
+    // to_derived<circle>(b0)->draw();
 
     b0 = my_circle.get();
-    to_polymorphic_derived<circle>(b0)->draw();
+    to_derived<circle>(b0)->draw();
 
     // Run-time assertion:
-    // to_polymorphic_derived<rectangle>(b0)->draw();
+    // to_derived<rectangle>(b0)->draw();
 }
 
 int main()

@@ -45,11 +45,14 @@ constexpr auto to_num(const TIn& x) noexcept
     // The first thing we have to do is check that the source and target types
     // satisfy the `std::is_arithmetic` type trait.
 
-    static_assert(std::is_arithmetic<TOut>{}, "`TOut` must be arithmetic.");
-    static_assert(std::is_arithmetic<TIn>{}, "`TIn` must be arithmetic.");
+    static_assert(std::is_arithmetic<TOut>{}, // .
+        "Output type must be arithmetic.");
+
+    static_assert(std::is_arithmetic<TIn>{}, // .
+        "Input type must be arithmetic.");
 
     // Afterwards, we assert that the conversion will not underflow/overflow
-    // thanks to our magic `will_overflow` function.
+    // thanks to our `will_overflow` function.
     assert((!impl::will_overflow<TOut, TIn>(x)));
 
     // We can finally use `static_cast` to convert the number.
@@ -57,6 +60,10 @@ constexpr auto to_num(const TIn& x) noexcept
 }
 
 // And that's pretty much it!
+
+// Notice how the name of the function clearly expresses our intent, and how the
+// separate static assertions tell us what type does not satisfy the
+// `std::is_arithmetic` trait.
 
 int main()
 {

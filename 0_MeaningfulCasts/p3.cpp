@@ -23,17 +23,13 @@
 // alignment to the ones of `T`.
 
 template <typename T, typename TStorage>
-using valid_storage = std::integral_constant<bool,
-    sizeof(typename TStorage::type) >= sizeof(T) &&
-        alignof(typename TStorage::type) >= alignof(T)>;
-
-// We can now define our conversion function `from_storage` that statically
-// asserts the validity of the storage using `valid_storage`.
-
-template <typename T, typename TStorage>
-constexpr decltype(auto) from_storage(TStorage* storage) noexcept
+constexpr decltype(auto) storage_cast(TStorage* storage) noexcept
 {
-    static_assert(valid_storage<T, TStorage>{}, "`TStorage` cannot hold `T`.");
+    static_assert(sizeof(typename TStorage::type) >= sizeof(T), // .
+        "`TStorage` is not big enough for `T`.");
+
+    static_assert(alignof(typename TStorage::type) >= alignof(T), // .
+        "`TStorage` is not properly aligned for `T`.");
 
     // Extra sanity check.
     assert(storage != nullptr);
@@ -47,40 +43,31 @@ constexpr decltype(auto) from_storage(TStorage* storage) noexcept
     return reinterpret_cast<return_type*>(storage);
 }
 
-// To improve ease of use, we can also define a version of the function that
-// takes references.
-
-template <typename T, typename TStorage>
-constexpr decltype(auto) from_storage(TStorage& storage) noexcept
-{
-    return *from_storage<T>(&storage);
-}
-
 int main()
 {
     // Simple mistakes can be prevented at compile-time:
     {
         std::aligned_storage_t<sizeof(int), alignof(int)> s;
 
-        reinterpret_cast<int&>(s) = 10;
-        from_storage<int>(s) = 10;
-        assert(*from_storage<int>(&s) == 10);
+        *(reinterpret_cast<int*>(&s)) = 10;
+        *(storage_cast<int>(&s)) = 10;
+        assert(*storage_cast<int>(&s) == 10);
 
         // Uncaught mistake:
-        reinterpret_cast<double&>(s) = 10.f;
+        *(reinterpret_cast<double*>(&s)) = 10.f;
 
         // Compile-time assertion:
         /*
-            from_storage<double>(s) = 10.f;
+            *(storage_cast<double>(&s)) = 10.f;
         */
     }
 
     // "Placement new" works as well:
     {
         std::aligned_storage_t<sizeof(int), alignof(int)> s;
-        new(from_storage<int>(&s)) int{10};
+        new(storage_cast<int>(&s)) int{10};
 
-        assert(from_storage<int>(s) == 10);
+        assert(*(storage_cast<int>(&s)) == 10);
     }
 
     return 0;
