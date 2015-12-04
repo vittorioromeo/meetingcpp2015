@@ -8,10 +8,12 @@
 #include <cmath>
 #include "will_overflow.hpp"
 
-// TODO: 
-// add GitHub link in both talks
+// All code is available at:
+// https://github.com/SuperV1234/meetingcpp2015
+
+// TODO:
 // mention UB in will_overflow
-// rename "will_overflow"? 
+// rename "will_overflow"?
 
 // Casting is an essential in all projects, but can be a source of errors when
 // used improperly.
@@ -163,5 +165,10 @@ int main()
 // Note that Boost provides a production-ready implementation,
 // `boost::numeric_cast`, which allows users to handle conversion errors in the
 // way they prefer thanks to a policy-based design.
+
+// Another very effective way of detecting overflows before they happen is using
+// compiler sanitization options. Both "clang++" and "g++" provide the
+// `-fsanitize=undefined` option, which catches "undefined behavior" before it
+// happens at runtime.
 
 // Let's move onto `enum`-related casts.
