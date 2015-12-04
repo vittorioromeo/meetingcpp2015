@@ -2,24 +2,27 @@
 // License: AFL 3.0 | https://opensource.org/licenses/AFL-3.0
 // http://vittorioromeo.info | vittorio.romeo@outlook.com
 
-// TODO: !!
-// link to constexpr_if paper
-
 #include <iostream>
 #include <memory>
 #include <vrm/core/static_if.hpp>
+
+// All code is available at:
+// https://github.com/SuperV1234/meetingcpp2015
 
 // "static if" and similar constructs would allow C++ developers to create
 // compile-time branches that enable different parts of code depending on a
 // compile-time condition, using familiar "imperative" syntax.
 
-// proposals:
+// Existing proposals:
 
 // N3613: "Static If" considered
 // open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3613.pdf
 
 // N4461: Static if resurrected
 // open-std.org/jtc1/sc22/wg21/docs/papers/2015/n4461.html
+
+// P0128R0: constexpr_if
+// open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0128r0.html
 
 // (Examples from N4461.)
 // Motivating example 1:
