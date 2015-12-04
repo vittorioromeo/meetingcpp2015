@@ -8,6 +8,11 @@
 #include <cmath>
 #include "will_overflow.hpp"
 
+// TODO: 
+// add GitHub link in both talks
+// mention UB in will_overflow
+// rename "will_overflow"? 
+
 // Casting is an essential in all projects, but can be a source of errors when
 // used improperly.
 

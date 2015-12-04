@@ -39,9 +39,6 @@ int main()
     return 0;
 }
 
-// TODO:
-// Thanks for your attention!
-
 // My advice:
 //
 // * Be as explicit as possible in your code. Wrapping existing functions in

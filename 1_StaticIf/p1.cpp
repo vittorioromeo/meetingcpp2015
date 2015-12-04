@@ -2,6 +2,9 @@
 // License: AFL 3.0 | https://opensource.org/licenses/AFL-3.0
 // http://vittorioromeo.info | vittorio.romeo@outlook.com
 
+// TODO: !!
+// link to constexpr_if paper
+
 #include <iostream>
 #include <memory>
 #include <vrm/core/static_if.hpp>
