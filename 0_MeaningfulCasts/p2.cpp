@@ -11,10 +11,13 @@
 template <typename TOut, typename TIn>
 constexpr auto to_num(const TIn& x) noexcept
 {
-    static_assert(std::is_arithmetic<TOut>{}, "`TOut` must be arithmetic.");
-    static_assert(std::is_arithmetic<TIn>{}, "`TIn` must be arithmetic.");
-    assert((!impl::will_overflow<TOut, TIn>(x)));
+    static_assert(std::is_arithmetic<TOut>{}, // .
+        "Output type `TOut` must be arithmetic.");
 
+    static_assert(std::is_arithmetic<TIn>{}, // .
+        "Input type `TIn` must be arithmetic.");
+
+    assert((!impl::will_overflow<TOut, TIn>(x)));
     return static_cast<TOut>(x);
 }
 
@@ -33,10 +36,16 @@ template <typename TOut, typename TIn>
 constexpr auto from_enum(const TIn& x) noexcept
 {
     // Make sure the input is an `enum`.
-    static_assert(std::is_enum<TIn>{}, "`TIn` must be an enum.");
+    static_assert(std::is_enum<TIn>{}, // .
+        "Input type `TIn` must be an enum.");
+
+    using underlying = std::underlying_type_t<TIn>;
+
+    static_assert(std::is_convertible<underlying, TOut>{}, // .
+        "`TIn`'s underlying type must be convertible to `TOut`.");
 
     // Use `to_num` to catch eventual errors when casting the inner value.
-    return to_num<TOut>(static_cast<std::underlying_type_t<TIn>>(x));
+    return to_num<TOut>(static_cast<underlying>(x));
 }
 
 // One common operation is converting an `enum` to its own underlying type.

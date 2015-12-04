@@ -7,12 +7,15 @@
 #include <type_traits>
 
 // Let's begin implementing "static if".
-// Firstly, let's define some utility macros/functions.
+// Firstly, let's define some utility macros/aliases.
 
 #define FWD(...) ::std::forward<decltype(__VA_ARGS__)>(__VA_ARGS__)
 
 template <bool TX>
 using bool_ = std::integral_constant<bool, TX>;
+
+template <bool TX>
+constexpr bool_<TX> bool_v{};
 
 // The interface function will be called `static_if` and will take a integral
 // boolean constant as a parameter.
@@ -208,7 +211,7 @@ auto consume(T&& x)
 {
     // A `static_if_impl` instance is created here.
     // It is specialized on `true`/`false` depending on the predicate.
-    static_if(bool_<is_solid<T>>{})
+    static_if(bool_v<is_solid<T>>)
 
         // If `static_if_impl<true>` was instantiated, its `.then` method
         // returns a `static_if_result`, that will evaluate the branch thanks to
@@ -224,7 +227,7 @@ auto consume(T&& x)
                 y.eat();
                 std::cout << "ate solid food\n";
             })
-        .else_if(bool_<is_liquid<T>>{})
+        .else_if(bool_v<is_liquid<T>>)
         .then([](auto&& y)
             {
                 y.drink();

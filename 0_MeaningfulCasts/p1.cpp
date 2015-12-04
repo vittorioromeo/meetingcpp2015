@@ -11,10 +11,6 @@
 // All code is available at:
 // https://github.com/SuperV1234/meetingcpp2015
 
-// TODO:
-// mention UB in will_overflow
-// rename "will_overflow"?
-
 // Casting is an essential in all projects, but can be a source of errors when
 // used improperly.
 
@@ -53,10 +49,10 @@ constexpr auto to_num(const TIn& x) noexcept
     // satisfy the `std::is_arithmetic` type trait.
 
     static_assert(std::is_arithmetic<TOut>{}, // .
-        "Output type must be arithmetic.");
+        "Output type `TOut` must be arithmetic.");
 
     static_assert(std::is_arithmetic<TIn>{}, // .
-        "Input type must be arithmetic.");
+        "Input type `TIn` must be arithmetic.");
 
     // Afterwards, we assert that the conversion will not underflow/overflow
     // thanks to our `will_overflow` function.
@@ -95,6 +91,7 @@ int main()
         // to_num<float>(E0::E0_a);
 
         // Explicit cast is required:
+        // (Cleaner `enum` conversions in the next code segment.)
         to_num<float>(static_cast<int>(E0::E0_a));
     }
 

@@ -3,8 +3,6 @@
 // http://vittorioromeo.info | vittorio.romeo@outlook.com
 
 #include <type_traits>
-#include <cassert>
-#include <iostream>
 
 template <typename T, typename TSource>
 using copy_const_qualifier = std::conditional_t<std::is_const<TSource>{}, // .

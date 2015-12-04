@@ -18,7 +18,7 @@ void print_all(T&& x, Ts&&... xs)
 {
     std::cout << x;
 
-    static_if(bool_<(sizeof...(xs) > 0)>{})
+    static_if(bool_v<(sizeof...(xs) > 0)>)
         .then([](auto&&... ys)
             {
                 std::cout << ", ";
@@ -63,7 +63,7 @@ void example_tokens()
                 // Handle `int` tokens.
                 .then([](auto ty)
                     {
-                        static_if(bool_<ty % 2 == 0>{})
+                        static_if(bool_v<ty % 2 == 0>)
                             .then([](auto)
                                 {
                                     std::cout << "even int token\n";
@@ -78,12 +78,12 @@ void example_tokens()
                 // Handle `char` tokens.
                 .then([](auto ty)
                     {
-                        static_if(bool_<(ty >= 'a' && ty <= 'z')>{})
+                        static_if(bool_v<(ty >= 'a' && ty <= 'z')>)
                             .then([](auto)
                                 {
                                     std::cout << "lowercase char token\n";
                                 })
-                            .else_if(bool_<(ty >= 'A' && ty <= 'Z')>{})
+                            .else_if(bool_v<(ty >= 'A' && ty <= 'Z')>)
                             .then([](auto)
                                 {
                                     std::cout << "uppercase char token\n";

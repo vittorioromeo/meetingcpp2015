@@ -18,10 +18,14 @@ constexpr auto to_void_ptr(T* x) noexcept
 
 template <typename T>
 constexpr auto num_to_void_ptr(T&& x) noexcept
-    -> std::enable_if_t<!std::is_pointer<T>{}, copy_cv_qualifiers<void, T>*>
+    -> std::enable_if_t<!std::is_pointer<T>{}, // .
+        copy_cv_qualifiers<void, T>*>
 {
+    static_assert(sizeof(void*) >= sizeof(T), // .
+        "Input type `T` must fit into `void*.");
+
     static_assert(std::is_arithmetic<std::decay_t<T>>{}, // .
-        "`T` must be arithmethic.");
+        "Input type `T` must be arithmethic.");
 
     return reinterpret_cast<copy_cv_qualifiers<void*, T>>(x);
 }
@@ -47,3 +51,6 @@ int main()
 // * Always try to use the strictest cast available.
 //
 // * Use Boost if you can!
+
+// My implementation of these "casts" is available here:
+// https://github.com/SuperV1234/vrm_core

@@ -1,5 +1,6 @@
-// Copyright (c) 2015 Vittorio Romeo
-// License: AFL 3.0 | https://opensource.org/licenses/AFL-3.0
+// Copyright (c) 2015-2016 Vittorio Romeo
+// License: Academic Free License ("AFL") v. 3.0
+// AFL License page: http://opensource.org/licenses/AFL-3.0
 // http://vittorioromeo.info | vittorio.romeo@outlook.com
 
 #include <type_traits>
@@ -66,6 +67,7 @@ namespace impl
 template <typename TDerived, typename TBase>
 constexpr decltype(auto) to_derived(TBase* base) noexcept
 {
+    //                                     to        from
     using result_type = copy_cv_qualifiers<TDerived, TBase>*;
     return impl::hierarchy_cast<TDerived, TBase, result_type>(base);
 }
@@ -73,6 +75,7 @@ constexpr decltype(auto) to_derived(TBase* base) noexcept
 template <typename TBase, typename TDerived>
 constexpr decltype(auto) to_base(TDerived* derived) noexcept
 {
+    //                                     to     from
     using result_type = copy_cv_qualifiers<TBase, TDerived>*;
     return impl::hierarchy_cast<TDerived, TBase, result_type>(derived);
 }

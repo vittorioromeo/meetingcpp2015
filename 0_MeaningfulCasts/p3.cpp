@@ -37,6 +37,8 @@ constexpr decltype(auto) storage_cast(TStorage* storage) noexcept
     // To avoid reimplementing this function for all possible qualifier
     // combinations, we use a simple `copy_cv_qualifiers` type-trait-like alias
     // that applies the qualifiers of a source type to another type.
+
+    //                                     to from
     using return_type = copy_cv_qualifiers<T, TStorage>;
 
     // Lastly, we `reinterpret_cast`.

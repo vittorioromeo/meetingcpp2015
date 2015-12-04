@@ -158,10 +158,10 @@ auto consume(T&& x)
     // * http://pfultz2.com/blog/2015/01/24/dependent-typing/
     // * http://boostorg.github.io/hana/index.html#tutorial-type
 
-    static_if(bool_<is_solid<T>>{})
+    static_if(bool_v<is_solid<T>>)
         .then([](auto&& y)
             {
-                // Scope rules are respected as usual.
+                // Scope rules are what you would expect.
 
                 // Think of every branch of the "static if" as a template
                 // function that will only be instantiated if the predicate
@@ -174,7 +174,7 @@ auto consume(T&& x)
                 y.eat();
                 std::cout << "ate solid food\n";
             })
-        .else_if(bool_<is_liquid<T>>{})
+        .else_if(bool_v<is_liquid<T>>)
         .then([](auto&& y)
             {
                 y.drink();
