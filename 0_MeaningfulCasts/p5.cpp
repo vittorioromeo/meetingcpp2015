@@ -17,7 +17,7 @@ constexpr auto to_void_ptr(T* x) noexcept
 }
 
 template <typename T>
-constexpr auto num_to_void_ptr(T&& x) noexcept
+constexpr auto num_to_void_ptr(const T& x) noexcept
     -> std::enable_if_t<!std::is_pointer<T>{}, // .
         copy_cv_qualifiers<void, T>*>
 {

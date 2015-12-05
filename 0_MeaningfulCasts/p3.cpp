@@ -51,6 +51,7 @@ int main()
     {
         std::aligned_storage_t<sizeof(int), alignof(int)> s;
 
+        // OK:
         *(reinterpret_cast<int*>(&s)) = 10;
         *(storage_cast<int>(&s)) = 10;
         assert(*storage_cast<int>(&s) == 10);

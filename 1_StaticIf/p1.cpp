@@ -145,32 +145,10 @@ template <typename T>
 auto consume(T&& x)
 {
     using namespace vrm::core;
-
-    // Note how we're wrapping our boolean predicates inside integral
-    // constants, so that they all have their own unique type.
-
-    // Wrapping values inside types is what allows amazing libraries such as
-    // `boost::hana` (by Louis Dionne) or `fit` and `tick` (by Paul Fultz II) to
-    // provide extremely powerful, clean, and intuitive metaprogramming
-    // facilities.
-
-    // More information about "type-value encoding" or "dependent typing":
-    // * http://pfultz2.com/blog/2015/01/24/dependent-typing/
-    // * http://boostorg.github.io/hana/index.html#tutorial-type
-
+    
     static_if(bool_v<is_solid<T>>)
         .then([](auto&& y)
             {
-                // Scope rules are what you would expect.
-
-                // Think of every branch of the "static if" as a template
-                // function that will only be instantiated if the predicate
-                // matches.
-
-                // In this example, even if `y.eat()` does not exist, we won't
-                // get a compilation error, because the branch won't be
-                // instantiated.
-
                 y.eat();
                 std::cout << "ate solid food\n";
             })
@@ -184,6 +162,28 @@ auto consume(T&& x)
             {
                 std::cout << "cannot consume\n";
             })(FWD(x));
+
+    // Note how we're wrapping our boolean predicates inside integral
+    // constants, so that they all have their own unique type.
+
+    // Wrapping values inside types is what allows amazing libraries such as
+    // `boost::hana` (by Louis Dionne) or `fit` and `tick` (by Paul Fultz II) to
+    // provide extremely powerful, clean, and intuitive metaprogramming
+    // facilities.
+
+    // More information about "type-value encoding" or "dependent typing":
+    // * http://pfultz2.com/blog/2015/01/24/dependent-typing/
+    // * http://boostorg.github.io/hana/index.html#tutorial-type
+
+    // Scope rules are what you would expect.
+
+    // Think of every branch of the "static if" as a template
+    // function that will only be instantiated if the predicate
+    // matches.
+
+    // In this example, even if `y.eat()` does not exist, we won't
+    // get a compilation error, because the branch won't be
+    // instantiated.
 }
 
 int main()

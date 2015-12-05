@@ -54,8 +54,7 @@ constexpr auto to_num(const TIn& x) noexcept
     static_assert(std::is_arithmetic<TIn>{}, // .
         "Input type `TIn` must be arithmetic.");
 
-    // Afterwards, we assert that the conversion will not underflow/overflow
-    // thanks to our `will_overflow` function.
+    // Afterwards, we assert that the conversion will not underflow/overflow.
     assert((!impl::will_overflow<TOut, TIn>(x)));
 
     // We can finally use `static_cast` to convert the number.
@@ -88,7 +87,11 @@ int main()
         static_cast<float>(E0::E0_a);
 
         // Does not compile, as intended:
-        // to_num<float>(E0::E0_a);
+        /*
+            to_num<float>(E0::E0_a);
+            to_num<E0>(E0::E0_a);
+            to_num<E0>(0);
+        */
 
         // Explicit cast is required:
         // (Cleaner `enum` conversions in the next code segment.)

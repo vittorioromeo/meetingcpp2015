@@ -128,7 +128,7 @@ int main()
 
         // Run-time assertion:
         /*
-             to_enum<uchar_enum>(-1);
+            to_enum<uchar_enum>(-1);
         */
     }
 
