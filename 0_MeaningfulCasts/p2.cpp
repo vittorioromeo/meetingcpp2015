@@ -114,7 +114,7 @@ int main()
 
         // Run-time assertion:
         /*
-            from_enum<unsigned int>(int_enum::pos0);
+            from_enum<unsigned int>(int_enum::neg0);
         */
     }
 
