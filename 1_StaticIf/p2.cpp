@@ -17,6 +17,8 @@ using bool_ = std::integral_constant<bool, TX>;
 template <bool TX>
 constexpr bool_<TX> bool_v{};
 
+// (Note that C++17 will introduce `bool_constant`).
+
 // The interface function will be called `static_if` and will take a integral
 // boolean constant as a parameter.
 
