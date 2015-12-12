@@ -143,11 +143,7 @@ namespace impl
             return *this;
         }
 
-        template <typename... Ts>
-        decltype(auto) operator()(Ts&&... xs)
-        {
-            return (static_cast<TFunctionToCall&>(*this))(FWD(xs)...);
-        }
+        // Using `operator()` will call the base `TFunctionToCall::operator()`.
     };
 }
 
